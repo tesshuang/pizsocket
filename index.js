@@ -1,5 +1,5 @@
 const server = require("http").Server();
-const port = 4008;
+const port = process.env.PORT || 4008;
 var io = require("socket.io")(server);
 
 var pizUsers = {};
