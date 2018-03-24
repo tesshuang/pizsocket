@@ -29,21 +29,37 @@ io.on("connection",function(socket){
     })
     
     socket.on("pickrole", function(data){
-       pizUsers[socket.myRoom].push(data);
-        console.log(pizUsers);
-        io.to(this.myRoom).emit("pizzauser", pizUsers[socket.myRoom]);
+        
+        
+        if(pizUsers[socket.myRoom].length === 0){
+            pizUsers[socket.myRoom].push(data);
+            io.to(socket.myRoom).emit("waiting", pizUsers[socket.myRoom]);
+        }
+        else if(pizUsers[socket.myRoom].length === 1){
+            if(data.ava === pizUsers[socket.myRoom][0].ava){
+                socket.emit("samerole");
+            }else{
+                pizUsers[socket.myRoom].push(data);
+                io.to(socket.myRoom).emit("startgame", pizUsers[socket.myRoom]);
+            }
+        }      
+        else if(pizUsers[socket.myRoom].length > 2){
+             socket.emit("toomany");
+        }
+         console.log(pizUsers);
+        /*io.to(this.myRoom).emit("pizzauser", pizUsers[socket.myRoom]);*/
     });
     
     socket.on("mymove", function(data){
-        io.to(this.myRoom).emit("newmove", data);
+        socket.broadcast.emit("newmove", data);
     })
 
     
-    /*socket.on("disconnect", function(data){
-       var index = pizUsers.indexOf(socket.id);
-        pizUsers.splice(index, 1);
-        io.emit("pizzauser", pizUsers);
-    });*/
+    socket.on("disconnect", function(data){
+       var index = pizUsers[socket.myRoom].indexOf(socket.id);
+        pizUsers[socket.myRoom].splice(index, 1);
+        /*io.emit("pizzauser", pizUsers);*/
+    });
 });
 
 server.listen(port, (err)=>{
